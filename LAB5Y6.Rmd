@@ -1,0 +1,37 @@
+---
+title: "Laborato 3 Correspondecias Simples y Multiples"
+author: 
+  -Grupo 6
+output:
+  pdf_document:
+    latex_engine: xelatex
+    keep_tex: true
+date: "2025-05-18"
+---
+
+## Integrantes
+
+  - Edwin Sanchez
+  - Stephanie Tamayo
+  - Andres Felipe Torres
+  - Fredy Urrea
+  - Sergio Velasquez
+  - Manuel Espitia
+  
+```{r setup, include=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+## Punto 1
+Con la metodologia del ejemplo 5.4 hacer un ACS para la tabla de contigencias p17b x p21 con las preguntas "p17_b" (en las filas) sobre la facilidad para cumplir la ley y la preferencia por hacer acuerdos p21. Identificar patrones o tendencias si los hat comentar los resultados.
+
+
+## Punto 2
+Construir la tabla de contigencias p17b x ciudad que le correspondio al frupo y las ciudades de Asuncion y Montevideo. Yuxtaponerla a la tabla p17b x p21 del ejerciio 1 y utlizarla como variables suplementarias para averiguar si se puede identificar algun patron o tendecia en la facilidad para cumplir la ley en las ciudades suplementarias con respecto a las tendencias de la ciudad que le correspondio al grupo
+
+## Punto 3
+
+Realizar un ACS a la tabla de contigencias "p17_b" (filas) vs preferencia para hacer acuerdor p21 en un ejercicio similar al 1.
+
+
