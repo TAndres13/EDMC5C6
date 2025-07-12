@@ -23,6 +23,27 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```
 
+
+# Introduccion
+
+Carga de achivos y organizaicon de los datos
+
+```{r cars, results='hide',message = FALSE, warning=FALSE, }
+
+library("FactoMineR")
+library("dplyr")
+library("kableExtra")
+library(readxl)
+library(FactoMineR)
+library(factoextra)
+library(kableExtra)
+library(readr)
+
+encuesta <- read_csv2("ECC_completa_19426.csv")
+str(encuesta)
+
+```
+
 # Capitulo 5 Análisis de correspondencias simples (ACS)
 
 ## Punto 1
@@ -35,6 +56,9 @@ Construir la tabla de contigencias p17b x ciudad que le correspondio al frupo y 
 ## Punto 3
 
 Realizar un ACS a la tabla de contigencias "p17_b" (filas) vs preferencia para hacer acuerdor p21 en un ejercicio similar al 1.
+
+
+
 
 ## Punto 4
 
