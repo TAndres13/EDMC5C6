@@ -1,7 +1,7 @@
 ---
 title: "Laborato 3 Correspondecias Simples y Multiples"
 author: 
-  -Grupo 6
+  Grupo 6
 output:
   pdf_document:
     latex_engine: xelatex
@@ -23,6 +23,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```
 
+# Capitulo 5 Análisis de correspondencias simples (ACS)
+
 ## Punto 1
 Con la metodologia del ejemplo 5.4 hacer un ACS para la tabla de contigencias p17b x p21 con las preguntas "p17_b" (en las filas) sobre la facilidad para cumplir la ley y la preferencia por hacer acuerdos p21. Identificar patrones o tendencias si los hat comentar los resultados.
 
@@ -34,4 +36,25 @@ Construir la tabla de contigencias p17b x ciudad que le correspondio al frupo y 
 
 Realizar un ACS a la tabla de contigencias "p17_b" (filas) vs preferencia para hacer acuerdor p21 en un ejercicio similar al 1.
 
+## Punto 4
+
+Apilar como ilustrativa la tabla ciudades (filas) vs preferencias para hacer acuerdors p21 para investigar si hay algun patron o tendencia en las ciuades respecto a las tendencias de la ciudad que le correspondio al grupo
+
+## Punto 5
+
+Seleccionar un pregunta del "Formulario Generico ECC" que el rupo considere de interes para realizar un ACS de la tabla de contigencia de esa pregunta con las ciudades e identificar tendencias o patrones por ciudades con respecto a esa pregunta
+
+## Punto 6
+
+Explorar las posibles asociaciones de la pregunta seleccionada en el punto 5 con la pregunta sobre la facilidad para cumplir la ley "p17_b" adicionandola como varibale ilustrativa.
+
+# Capítulo 6 Análisis de correspondencias Múltiples (ACM)
+
+## Punto 1
+
+Utilizar  el archivo ECC_completa_19426.csv y los datos de la ciudad que le correspondió al grupo para el laboratorio de ACS para realizar un ACM con las siguientes preguntas como variables activas : p_20_a a p20_k, p21, p27 y p33_a a p33_a_p.
+
+## Punto 2
+
+Utilizar como variables ilustraticas el nivel socioeconomico (NSE), el sexo (p5) y el nivel educativo (p7_NEd) e identificar si hay alguna tendencias o patron de asociacion con las variables activas.
 
