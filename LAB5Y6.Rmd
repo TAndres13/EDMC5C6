@@ -59,11 +59,18 @@ Realizar un ACS a la tabla de contigencias "p17_b" (filas) vs preferencia para h
 
 ```{r}
 tabla <- table(encuesta$p17_b, encuesta$p21)
-tabla
-print(tabla)
 
 require(FactoMineR)
 acsp17p21= CA(tabla, graph = T)
+```
+### Tabla de valores propios y varainza acumulada
+
+```{r}
+valores_propios <- acsp17p21$eig
+kable(valores_propios,
+      col.names = c("Valor propio", "% de varianza", "% varianza acumulada"),
+      caption = "Tabla de valores propios y varianza explicada del ACS") %>%
+  kable_styling(latex_options = c("hold_position", "striped", "scale_down"))
 ```
 
 
