@@ -40,9 +40,10 @@ library(kableExtra)
 library(readr)
 library(tidyr)
 library(dplyr)
+library(tibble)
 
 encuesta <- read_csv2("ECC_completa_19426.csv")
-
+ecc<- read_csv2("ECC_completa_19426.csv")
 ```
 
 # Capitulo 5 Análisis de correspondencias simples (ACS)
@@ -131,6 +132,48 @@ kable(tabla_columnas,
   kable_styling(latex_options = c("striped", "hold_position"), font_size = 8)
 ```
 
+### Grafico 
+
+```{r}
+
+library(factoextra)
+library(ggplot2)
+library(grid)
+
+# Crear gráfico base
+f_col <- fviz_ca_col(acsp17p21, labelsize = 5,
+                     xlim = c(-0.15, 0.15), ylim = c(-0.1, 0.1),
+                     title = "Perfiles columna: p21")
+
+# Extraer coordenadas
+coords <- f_col$data
+
+# Orden correcto de las modalidades (¡ya corregido!)
+orden_modalidades <- c("p21_HACACU=1_n", 
+                       "p21_HACACU=2_cn", 
+                       "p21_HACACU=3_cs", 
+                       "p21_HACACU=4_s")
+
+# Filtrar y ordenar según ese orden
+coords_linea <- coords[match(orden_modalidades, coords$name), ]
+
+# Crear segmentos entre puntos consecutivos
+segmentos <- data.frame(
+  x = coords_linea$x[-nrow(coords_linea)],
+  y = coords_linea$y[-nrow(coords_linea)],
+  xend = coords_linea$x[-1],
+  yend = coords_linea$y[-1]
+)
+
+# Agregar flechas y puntos al gráfico base
+f_col +
+  geom_segment(data = segmentos,
+               aes(x = x, y = y, xend = xend, yend = yend),
+               arrow = arrow(length = unit(0.2, "cm"), type = "closed"),
+               color = "blue", size = 1) +
+  geom_point(data = coords_linea, aes(x = x, y = y),
+             color = "red", size = 2)
+```
 
 
 ## Punto 4
@@ -141,9 +184,202 @@ Apilar como ilustrativa la tabla ciudades (filas) vs preferencias para hacer acu
 
 Seleccionar un pregunta del "Formulario Generico ECC" que el rupo considere de interes para realizar un ACS de la tabla de contigencia de esa pregunta con las ciudades e identificar tendencias o patrones por ciudades con respecto a esa pregunta
 
+```{r}
+# TABLA DE CONTINGENCIA ---------------------------------------------------
+
+tab <- ecc %>% 
+  select(ciudad = ciudad2, transp = p9) %>% 
+  filter(!is.na(ciudad) & !is.na(transp)) %>% 
+  table()
+
+```
+
+
+```{r}
+# Distancia χ²  y clustering ----------------------------------------------
+
+
+perf  <- sweep(tab, 1, rowSums(tab), "/")
+w_col <- colSums(tab) / sum(tab)
+chi_d <- dist( sweep(perf, 2, sqrt(w_col), "/") )
+
+hc     <- hclust(chi_d, method = "ward.D2")
+k      <- 3
+
+
+pal_hex <- c("#00AFBB", "#E7B800", "#FC4E07")        # grupo 1-2-3
+names(pal_hex) <- pal_hex                           # ← clave = HEX
+
+labs_hex <- c(
+  `#00AFBB` = "Transporte masivo + taxi",
+  `#E7B800` = "Bus dominante",
+  `#FC4E07` = "Bicicleta dominante"
+)
+
+```
+
+
+```{r}
+# TABLA DE RESUMEN --------------------------------------------------------
+
+
+df_resumen <- data.frame(
+  Ciudad      = rownames(tab),
+  Grupo       = cutree(hc, k),
+  Descripcion = labs_hex[ pal_hex[ cutree(hc, k) ] ],
+  row.names   = NULL
+)
+print(df_resumen)
+```
+
+
+
+```{r}
+# DENDOGRAMA --------------------------------------------------------------
+
+
+p <- fviz_dend(
+  hc,
+  k           = k,
+  k_colors    = pal_hex,      
+  rect        = TRUE,
+  rect_fill   = TRUE,
+  cex         = 0.85,
+  main        = "Agrupaciones de ciudades latinoamericanas según patrón de transporte (p9)",
+  xlab        = "Ciudades latinoamericanas",
+  ylab        = "Altura"
+) +
+  
+  #COLOR TIPO HEX?(?)
+  scale_color_identity(
+    name   = "Dominant pattern",
+    breaks = names(labs_hex),
+    labels = labs_hex
+  ) +
+  
+  
+  guides(colour = guide_legend(override.aes = list(size = 2))) +
+  
+  theme(
+    legend.position = "top",
+    legend.title    = element_text(face = "bold")
+  )
+
+print(p)
+```
+
+
 ## Punto 6
 
 Explorar las posibles asociaciones de la pregunta seleccionada en el punto 5 con la pregunta sobre la facilidad para cumplir la ley "p17_b" adicionandola como varibale ilustrativa.
+
+
+
+Este análisis busca explorar la asociación entre los patrones de transporte
+(p9) y la percepción de facilidad para cumplir la ley (p17_b). Se aplica un
+Análisis de Correspondencias Simples (ACS) a la tabla de contingencia 
+Ciudad × Transporte, y se proyecta p17_b como variable ilustrativa para
+identificar posibles asociaciones.
+
+
+```{r}
+# TABLA DE CONTINGENCIA Ciudad × Transporte (p9) ----------------------
+
+tab_p9 <- ecc %>%
+  select(ciudad = ciudad2, transporte = p9) %>%
+  filter(!is.na(ciudad), !is.na(transporte)) %>%
+  count(ciudad, transporte) %>%
+  pivot_wider(names_from = transporte, values_from = n, values_fill = 0) %>%
+  column_to_rownames("ciudad")
+print(tab_p9)
+
+```
+
+
+La tabla de contingencia Ciudad × Transporte (p9) evidencia diferencias claras en los patrones de movilidad urbana: Bogotá, Medellín y Ciudad de México
+muestran una fuerte dependencia del autobús o colectivo, mientras que Montevideo destaca por un uso inusualmente alto del taxi y Quito por un notable 
+predominio de la bicicleta, lo que sugiere la influencia de factores estructurales, culturales y de política pública en la elección del transporte. 
+Estas disparidades justifican el uso del Análisis de Correspondencias Simples (ACS) para identificar agrupamientos y explorar cómo estos patrones 
+se relacionan con variables como la percepción sobre el cumplimiento de la ley (p17_b), permitiendo así una comprensión más profunda y crítica de
+la movilidad urbana en cada contexto.
+
+
+
+```{r}
+# ANÁLISIS DE CORRESPONDENCIAS (ACS) ----------------------------------
+
+res.ca <- CA(tab_p9, graph = FALSE)
+
+
+# ASOCIAR p17_b A CADA CIUDAD -----------------------------------------
+
+ley_ciudad <- ecc %>%
+  filter(!is.na(ciudad2), !is.na(p17_b)) %>%
+  group_by(ciudad2, p17_b) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(ciudad2) %>%
+  slice_max(n, n = 1, with_ties = FALSE) %>%  # moda
+  rename(ciudad = ciudad2, ley = p17_b)
+
+
+# RECODIFICAR p17_b    ---------------------
+
+ley_ciudad <- ley_ciudad %>%
+  mutate(ley = case_when(
+    ley == "p17b_FACL=1_n"  ~ "Nada",
+    ley == "p17b_FACL=2_cn" ~ "Casi nada",
+    ley == "p17b_FACL=3_cs" ~ "Casi sí",
+    ley == "p17b_FACL=4_s"  ~ "Sí",
+    TRUE ~ as.character(ley)
+  ))
+
+
+# EXTRAER COORDENADAS DEL CA Y UNIR CON p17_b --------------------------
+
+coord_ciudades <- as.data.frame(res.ca$row$coord)
+colnames(coord_ciudades) <- gsub(" ", ".", colnames(coord_ciudades))  # Convertir "Dim 1" → "Dim.1"
+coord_ciudades$ciudad <- rownames(coord_ciudades)
+
+# Unimos coordenadas con la ley por ciudad
+coords_df <- left_join(coord_ciudades, ley_ciudad, by = "ciudad")
+
+
+# CALCULAR CENTROIDES DE CADA NIVEL DE p17_b --------------------------
+
+centroides <- coords_df %>%
+  group_by(ley) %>%
+  summarise(across(starts_with("Dim"), \(x) mean(x, na.rm = TRUE)))
+
+
+# GRAFICAR RESULTADOS --------------------------------------------------
+
+ggplot(coords_df, aes(x = Dim.1, y = Dim.2)) +
+  geom_point(color = "black") +
+  geom_text(aes(label = ciudad), vjust = -0.5, size = 3) +
+  geom_point(data = centroides, aes(x = Dim.1, y = Dim.2), color = "red", size = 4) +
+  geom_text(data = centroides, aes(x = Dim.1, y = Dim.2, label = ley),
+            color = "red", vjust = -1, size = 4) +
+  labs(
+    title = "ACS: Ciudad × Transporte (p9) con p17_b como variable ilustrativa",
+    x = "Dimensión 1",
+    y = "Dimensión 2"
+  ) +
+  theme_minimal()
+
+
+```
+
+El análisis revela una asociación diferenciada entre la percepción sobre la facilidad para cumplir la ley (variable p17_b)
+y los patrones de movilidad urbana en distintas ciudades. La categoría “Sí”, que indica una percepción favorable, se relaciona principalmente con ciudades 
+como Asunción y Montevideo, sugiriendo que en estos contextos la movilidad y el cumplimiento normativo podrían estar más alineados. Por otro lado, la categoría 
+“Casi sí” agrupa a ciudades como Bogotá, Medellín y Ciudad de México, ubicadas en el centro del gráfico, lo que indica una percepción intermedia sobre el 
+cumplimiento de la ley en entornos urbanos con patrones de transporte más convencionales.
+Quito se destaca por su clara separación del resto, reflejando un patrón de transporte distinto, probablemente vinculado al uso masivo de la bicicleta,
+y sin una asociación directa con las categorías de percepción sobre la ley mencionadas. Esta desconexión sugiere que factores específicos de movilidad
+alternativa pueden influir en la percepción ciudadana de manera diferente.
+En conjunto, estos hallazgos apuntan a una posible relación entre ciertos patrones de movilidad urbana y
+percepciones más favorables sobre el cumplimiento de la ley, lo que puede ser relevante para el diseño de políticas públicas que integren movilidad y 
+gobernanza urbana de manera más efectiva y contextualizada.
 
 # Capítulo 6 Análisis de correspondencias Múltiples (ACM)
 
