@@ -40,7 +40,6 @@ library(kableExtra)
 library(readr)
 
 encuesta <- read_csv2("ECC_completa_19426.csv")
-str(encuesta)
 
 ```
 
@@ -56,6 +55,16 @@ Construir la tabla de contigencias p17b x ciudad que le correspondio al frupo y 
 ## Punto 3
 
 Realizar un ACS a la tabla de contigencias "p17_b" (filas) vs preferencia para hacer acuerdor p21 en un ejercicio similar al 1.
+
+
+```{r}
+tabla <- table(encuesta$p17_b, encuesta$p21)
+tabla
+print(tabla)
+
+require(FactoMineR)
+acsp17p21= CA(tabla, graph = T)
+```
 
 
 
