@@ -180,6 +180,67 @@ f_col +
 
 Apilar como ilustrativa la tabla ciudades (filas) vs preferencias para hacer acuerdors p21 para investigar si hay algun patron o tendencia en las ciuades respecto a las tendencias de la ciudad que le correspondio al grupo
 
+
+```{r}
+#GRAFICO
+tab_ciud_p21 <- with(ecc, table(ciudad2, p21))
+ciudad_grupo   <- "Quito"
+fila_sup       <- which(rownames(tab_ciud_p21) == ciudad_grupo)
+res.ca <- CA(tab_ciud_p21,
+             graph   = TRUE,
+             row.sup = fila_sup)
+```
+
+El mapa de factores del Análisis de Correspondencia (CA) nos permite visualizar las relaciones y patrones de asociación entre las diferentes ciudades (puntos azules) y las categorías de "preferencia para hacer acuerdos p21" (triángulos rojos). La ciudad de Quito ha sido tratada como un punto suplementario o ilustrativo, lo que significa que su posición se proyecta en el mapa sin influir en la construcción de los ejes principales, permitiéndonos observar su tendencia en relación con las variables activas y las demás ciudades.
+
+El análisis de correspondencias muestra que las dos primeras dimensiones capturan un 91,10 % de la inercia total: la Dimensión 1 (eje horizontal) aporta un 55,43 % y la Dimensión 2 (eje vertical) un 35,67 %.
+
+En la Dimensión 1, el extremo derecho se asocia con la categoría **p21\_HACACU = 1 (“nunca”)**, donde se agrupan Monterrey, Caracas y La Paz; el izquierdo, con **p21\_HACACU = 3 (“casi siempre”)**, muy cerca de Bogotá, Medellín, Asunción y la ciudad suplementaria, Quito. Así, esta dimensión distingue claramente el polo “nunca” del polo “casi siempre”.
+
+La Dimensión 2, por su parte, separa en su parte superior la preferencia **p21\_HACACU = 2 (“casi nunca”)**, representada especialmente por Ciudad de México y Montevideo, mientras que en la zona inferior no emerge un vínculo fuerte con ninguna categoría, aunque Medellín, Asunción y La Paz se extienden ligeramente hacia ese lado.
+
+Si observamos los grupos de ciudades, se distinguen tres patrones:
+
+* **“Siempre”**: Quito, Bogotá y Belo Horizonte se ubican en el cuadrante superior‑izquierdo, muy próximos a la categoría **4 (“siempre”)**, lo que indica que en estas urbes predomina la preferencia por formalizar acuerdos de forma invariable.
+* **“Casi nunca / Nunca”**: Monterrey, Caracas y La Paz aparecen juntos en el cuadrante inferior‑derecho, alineados con “nunca” y “casi nunca”, lo que revela su reticencia a hacer acuerdos.
+* **“Intermedio”**: Ciudad de México y Montevideo se sitúan en una posición media, entre “casi nunca” y “casi siempre”, mostrando un patrón de respuestas más equilibrado.
+
+En definitiva, existe un claro agrupamiento según la propensión a pactar acuerdos: Quito forma parte del grupo “siempre”, mientras que La Paz, Caracas y Monterrey constituyen el polo opuesto, y México DF y Montevideo ocupan un punto intermedio.
+
+```{r}
+#TABLA
+nuevos_nombres_p21 <- c("SIEMPRE", "CASI SIEMPRE", "NUNCA", "CASI NUNCA")
+colnames(tab_ciud_p21) <- nuevos_nombres_p21
+# Generar la tabla en formato kable para LaTeX
+kable(
+  tab_ciud_p21, # Tu tabla de contingencia de ciudades vs. p21
+  "latex",
+  booktabs = TRUE,
+  caption = "Tabla de Contingencia: Ciudades vs. Preferencia para hacer acuerdos (p21)",
+  label = "tab_ciud_p21_contingency" # Un label descriptivo para la tabla
+) %>%
+  kable_styling(latex_options = c("striped", "hold_position"))
+```
+
+Para ilustrar cómo se agrupan las ciudades según su propensión a pactar acuerdos, proyectamos la tabla de frecuencias de cada ciudad frente a las cuatro categorías de p21 (“siempre”, “casi siempre”, “nunca” y “casi nunca”) en el plano factorial definido por las dos primeras dimensiones, que explican en conjunto el 91,10 % de la inercia (55,43 % en el eje 1 y 35,67 % en el eje 2).
+
+El panorama tras proyectar las ciudades revela tres zonas bien diferenciadas:
+
+1. **Grupo “Siempre”**
+   Asunción, Bogotá y Belo Horizonte se sitúan en el extremo izquierdo del eje 1, muy cerca de la modalidad **“siempre”**. Esto indica que en estas urbes una proporción notable de encuestados prefiere hacer acuerdos de forma invariable.
+
+2. **Grupo “Nunca / Casi nunca”**
+   En el cuadrante inferior‑derecho aparecen con claridad La Paz, Caracas y Monterrey, muy alineadas con **“nunca”** y **“casi nunca”**. Aquí predomina la reticencia a formalizar acuerdos o se tiende a evitarlos casi siempre.
+
+3. **Posición intermedia**
+   Ciudad de México y Montevideo ocupan una posición central, equidistante de “casi nunca” y “casi siempre”, lo que sugiere un patrón de respuestas más equilibrado o mixto.
+
+La ciudad suplementaria **Quito**, proyectada sobre el mismo plano, queda próxima al clúster “casi siempre” y “siempre”, reforzando su afinidad con Asunción, Bogotá y Belo Horizonte.
+
+En definitiva, el análisis confirma un claro agrupamiento: un polo “siempre” (Asunción, Bogotá, Belo Horizonte y Quito), otro polo “nunca/casi nunca” (La Paz, Caracas, Monterrey) y un segmento intermedio (Ciudad de México y Montevideo), lo que evidencia la variedad de tendencias al hacer acuerdos en las diferentes ciudades estudiadas.
+
+
+
 ## Punto 5
 
 Seleccionar un pregunta del "Formulario Generico ECC" que el rupo considere de interes para realizar un ACS de la tabla de contigencia de esa pregunta con las ciudades e identificar tendencias o patrones por ciudades con respecto a esa pregunta
