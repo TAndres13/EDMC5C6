@@ -6,7 +6,7 @@ output:
   pdf_document:
     latex_engine: xelatex
     keep_tex: true
-date: "2025-05-18"
+date: 
 ---
 
 ## Integrantes
@@ -38,6 +38,8 @@ library(FactoMineR)
 library(factoextra)
 library(kableExtra)
 library(readr)
+library(tidyr)
+library(dplyr)
 
 encuesta <- read_csv2("ECC_completa_19426.csv")
 
@@ -60,9 +62,35 @@ Realizar un ACS a la tabla de contigencias "p17_b" (filas) vs preferencia para h
 ```{r}
 tabla <- table(encuesta$p17_b, encuesta$p21)
 
+tabla_df <- as.data.frame(tabla)
+
+tabla_bonita <- tabla_df %>%
+  pivot_wider(names_from = Var2, values_from = Freq, values_fill = 0) %>%
+  rename(`Facilidad para cumplir la ley (p17_b)` = Var1)
+
+
+
+kable(tabla_bonita,
+      caption = "Tabla de contingencia entre p17b y p21",
+      format = "latex",
+      booktabs = TRUE,
+      escape = TRUE) %>%
+  kable_styling(latex_options = c("striped", "hold_position"), font_size = 8) %>%
+  column_spec(1, latex_column_spec = "p{3cm}") %>%
+  column_spec(2, latex_column_spec = "p{2.5cm}") %>%
+  column_spec(3, latex_column_spec = "p{2.5cm}") %>%
+  column_spec(4, latex_column_spec = "p{2.5cm}") %>%
+  column_spec(5, latex_column_spec = "p{2.5cm}")
+
+```
+### Ejecucion de acs
+
+```{r}
 require(FactoMineR)
 acsp17p21= CA(tabla, graph = T)
 ```
+
+
 ### Tabla de valores propios y varainza acumulada
 
 ```{r}
@@ -73,6 +101,35 @@ kable(valores_propios,
   kable_styling(latex_options = c("hold_position", "striped", "scale_down"))
 ```
 
+### Tabla contribuciones columnas
+
+```{r}
+
+# Extraer solo primeras 2 dimensiones
+coord_col <- acsp17p21$col$coord[, 1:2]
+contrib_col <- acsp17p21$col$contrib[, 1:2]
+cos2_col <- acsp17p21$col$cos2[, 1:2]
+
+# Combinar en una sola tabla
+tabla_columnas <- cbind(coord_col, contrib_col, cos2_col)
+
+# Asignar nombres adecuados
+colnames(tabla_columnas) <- c(
+  "Coord_Dim1", "Coord_Dim2",
+  "Contrib_Dim1", "Contrib_Dim2",
+  "Cos2_Dim1", "Cos2_Dim2"
+)
+
+library(knitr)
+library(kableExtra)
+
+kable(tabla_columnas,
+      digits = 3,
+      caption = "Coordenadas, contribuciones y cosenos cuadrados de las columnas (p21) - primeras 2 dimensiones",
+      format = "latex",
+      booktabs = TRUE) %>%
+  kable_styling(latex_options = c("striped", "hold_position"), font_size = 8)
+```
 
 
 
