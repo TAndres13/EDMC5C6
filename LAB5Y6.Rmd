@@ -408,7 +408,7 @@ tab <- ecc %>%
 tab_df <- as.data.frame.matrix(tab)
 
 # Limpiar nombres: convertir a UTF-8 válido
-colnames(tab_df) <- iconv(colnames(tab_df), from = "", to = "UTF-8", sub = "ASCII")
+colnames(tab_df) <- iconv(colnames(tab_df), from = "", to = "UTF-8", sub = "o")
 rownames(tab_df) <- iconv(rownames(tab_df), from = "", to = "UTF-8", sub = "ASCII")
 
 # Escapar símbolos LaTeX como _
@@ -419,8 +419,18 @@ kable(tab_df,
       format = "latex",
       caption = "Tabla de Contingencia: Ciudad vs. Medio de Transporte (p9)",
       booktabs = TRUE,
-      escape = FALSE) %>%
-  kable_styling(latex_options = c("striped", "hold_position"))
+      escape = FALSE,
+      longtable = TRUE) %>%
+  kable_styling(latex_options = c("striped", "hold_position", "scale_down")) %>%
+  column_spec(1, width = "1.2cm")%>%
+  column_spec(2, width = "1.2cm")%>%
+  column_spec(3, width = "1.2cm")%>%
+  column_spec(4, width = "1.2cm")%>%
+  column_spec(5, width = "1.2cm")%>%
+  column_spec(6, width = "1.2cm")%>%
+  column_spec(7, width = "1.7cm")%>%
+  column_spec(8, width = "1.5cm")%>%
+  column_spec(9, width = "1.2cm")
 ```
 
 
@@ -447,7 +457,7 @@ labs_hex <- c(
 
 ```
 
-
+## Tabla Resumen
 ```{r 10, warning=FALSE}
 # TABLA DE RESUMEN --------------------------------------------------------
 
@@ -458,9 +468,17 @@ df_resumen <- data.frame(
   Descripcion = labs_hex[ pal_hex[ cutree(hc, k) ] ],
   row.names   = NULL
 )
-print(df_resumen)
+
+kable(df_resumen,
+      format = "latex",
+      booktabs = TRUE,
+      caption = "Resumen de Agrupación de Ciudades según Patrón de Transporte",
+      col.names = c("Ciudad", "Grupo", "Descripción"),
+      escape = TRUE) %>%
+  kable_styling(latex_options = c("striped", "hold_position"), 
+                bootstrap_options = c("striped", "hover"))
 ```
-```{r 111}
+```{r 111, warning=FALSE, message=FALSE, echo=FALSE}
 library(factoextra)
 library(ggplot2)
 library(stringi)
@@ -512,7 +530,7 @@ ggsave("figuras/dendrograma_p9.png", plot = p, width = 8, height = 5, dpi = 300)
 
 
 
-```{r 11, warning=FALSE}
+```{r 11, warning=FALSE, message=FALSE}
 
 library(stringi)
 
@@ -585,8 +603,25 @@ tab_p9 <- ecc %>%
   count(ciudad, transporte) %>%
   pivot_wider(names_from = transporte, values_from = n, values_fill = 0) %>%
   column_to_rownames("ciudad")
-print(tab_p9)
 
+
+
+# Limpiar nombres de columnas y filas
+colnames(tab_p9) <- iconv(colnames(tab_p9), from = "", to = "UTF-8", sub = "o")
+rownames(tab_p9) <- iconv(rownames(tab_p9), from = "", to = "UTF-8", sub = "ASCII")
+
+# Escapar guiones bajos para LaTeX
+colnames(tab_p9) <- gsub("_", "\\\\_", colnames(tab_p9))
+rownames(tab_p9) <- gsub("_", "\\\\_", rownames(tab_p9))
+
+
+kable(tab_p9,
+      format = "latex",
+      booktabs = TRUE,
+      escape = FALSE,
+      caption = "Tabla de Contingencia: Ciudad vs. Medio de Transporte (p9)") %>%
+  kable_styling(latex_options = c("striped", "hold_position", "scale_down")) %>%
+  column_spec(1, width = "4cm")
 
 ```
 
