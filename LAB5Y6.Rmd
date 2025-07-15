@@ -79,6 +79,9 @@ kable(tabla_con_totales, caption = "Tabla de Contingencia: Facilidad Ley vs.
   column_spec(ncol(tabla_con_totales), bold = TRUE)
 ```
 
+
+La tabla muestra una relación aparente entre la percepción de facilidad para cumplir la ley y la preferencia por hacer acuerdos. Se observa que quienes consideran que es fácil o muy fácil cumplir la ley tienden a mostrar una mayor inclinación hacia hacer acuerdos, especialmente en las categorías “Casi siempre” y “Siempre acuerdo”, que concentran la mayoría de respuestas. Por el contrario, quienes perciben mayor dificultad presentan una menor preferencia por realizar acuerdos. Esta distribución sugiere una asociación positiva entre ambos aspectos: a mayor percepción de facilidad para cumplir la ley, mayor es la disposición hacia los acuerdos.
+
 ### Tabla de Perfiles Fila
 
 ```{r tabla-perfiles-fila, warning=FALSE}
@@ -94,6 +97,9 @@ kable(perfiles_fila_totales,
   add_header_above(c(" " = 1, "Preferencia por hacer Acuerdos" = 4, " " = 1)) %>%
   column_spec(ncol(perfiles_fila_totales), bold = TRUE)
 ```
+
+Los perfiles fila revelan que, independientemente del nivel de dificultad percibida para cumplir la ley, la mayoría de personas se inclinan por “Casi siempre” o “Siempre acuerdo”. Sin embargo, se destaca que quienes consideran que es “Muy fácil” cumplir la ley presentan la mayor proporción en la categoría “Siempre acuerdo” (41.71%), seguida por quienes creen que es “Fácil” (35.39%). En contraste, los niveles más bajos de facilidad percibida muestran una mayor dispersión hacia las categorías menos frecuentes de acuerdo. Esto refuerza la idea de que a mayor facilidad percibida para cumplir la ley, mayor es la preferencia por llegar a acuerdos.
+
 
 ### Tabla de Perfiles Columna
 
@@ -111,6 +117,8 @@ kable(perfiles_columna_totales,
   row_spec(nrow(perfiles_columna_totales), bold = TRUE)
 ```
 
+La tabla muestra cómo se distribuyen los niveles de dificultad para cumplir la ley según cada tipo de preferencia por hacer acuerdos. Se observa que entre quienes “Siempre” o “Casi siempre” están dispuestos a hacer acuerdos, predominan quienes consideran que es “Fácil” o “Muy fácil” cumplir la ley (más del 80%). En cambio, en la categoría “Nunca acuerdo”, aunque también predominan estos niveles, hay una mayor proporción relativa de personas que perciben mayores dificultades. En conjunto, esta tabla refuerza el patrón ya observado: la disposición a hacer acuerdos se asocia positivamente con la percepción de facilidad para cumplir la ley.
+
 ## 3. Análisis de Correspondencias Simples (ACS)
 
 ### Resumen de Autovalores
@@ -123,6 +131,9 @@ colnames(eig_tabla) <- c("Valor Propio", "% de Varianza", "% Varianza Acumulada"
 kable(eig_tabla, digits = 3, caption = "Resumen de Autovalores del ACS", booktabs = TRUE) %>%
   kable_styling(latex_options = "hold_position", bootstrap_options = c("striped", "hover"))
 ```
+
+
+El análisis muestra que las dos primeras dimensiones explican conjuntamente el 93.77% de la variabilidad total de la tabla de contingencia. En particular, la primera dimensión concentra el 56.06% y la segunda el 37.71%, lo que indica que un plano bidimensional es suficiente para representar adecuadamente la estructura de asociación entre las variables. La tercera dimensión aporta información marginal (6.23%), por lo que puede considerarse prescindible para la interpretación principal del ACS.
 
 ### Indicadores de Calidad del Análisis
 
@@ -141,6 +152,13 @@ kable(resultados_filas[, c("Coord.1", "Coord.2", "Ctr.1", "Ctr.2", "Cos2.1", "Co
   add_header_above(c(" " = 1, "Coordenadas" = 2, "Contribuciones" = 2, "Cosenos²" = 2)) %>%
   kable_styling(latex_options = "hold_position", bootstrap_options = c("striped", "hover"))
 
+```
+
+
+Los resultados muestran que la categoría “Difícil” tiene una alta contribución (67.24%) a la primera dimensión y un coseno² de 0.967, lo que indica que está fuertemente asociada con la dimensión principal del ACS. Por su parte, “Muy fácil” y “Fácil” presentan mayores contribuciones y cosenos² en la segunda dimensión, lo que sugiere que sus diferencias se explican mejor a lo largo de esa dirección. En contraste, la categoría “Muy difícil” tiene baja representación global, con valores bajos en cosenos² y contribuciones. En conjunto, los perfiles de “Difícil” y “Fácil/Muy fácil” son los más relevantes para la interpretación de las dimensiones del análisis.
+
+
+```{r acs-indicadores analisi por filas y columnas2}
 resultados_columnas <- cbind(
   acs_quito$col$coord,
   acs_quito$col$contrib,
@@ -154,7 +172,11 @@ kable(resultados_columnas[, c("Coord.1", "Coord.2", "Ctr.1", "Ctr.2", "Cos2.1", 
       caption = "Indicadores para el Análisis por Columnas (Preferencia Acuerdos)") %>%
   add_header_above(c(" " = 1, "Coordenadas" = 2, "Contribuciones" = 2, "Cosenos²" = 2)) %>%
   kable_styling(latex_options = "hold_position", bootstrap_options = c("striped", "hover"))
+
 ```
+
+La categoría “Casi nunca” presenta la mayor contribución (71.74%) y un coseno² de 0.968 en la primera dimensión, indicando que define fuertemente el eje principal del análisis. En la segunda dimensión, la categoría más relevante es “Siempre acuerdo”, con una contribución del 57.39% y un coseno² de 0.902, lo que indica que esta dimensión separa principalmente a quienes están muy dispuestos a hacer acuerdos. En cambio, “Nunca acuerdo” tiene baja contribución y coseno², lo que sugiere que su perfil es menos representativo en el espacio factorial. En conjunto, las categorías intermedias (“Casi nunca” y “Casi siempre”) son clave para la interpretación de las relaciones entre las variables.
+
 
 
 ```{r barras}
@@ -199,7 +221,7 @@ title("Distribución de Preferencia por Acuerdos según Facilidad para Entender 
 ```
 
 
-
+Los gráficos de barras muestran cómo varía la preferencia por hacer acuerdos según la percepción de facilidad para cumplir la ley. A medida que se percibe mayor facilidad (“Fácil” y “Muy fácil”), aumenta la proporción de personas que prefieren hacer acuerdos con frecuencia. En particular, quienes consideran que es muy fácil cumplir la ley se concentran en las categorías “Siempre acuerdo” (41.7%) y “Casi siempre” (37.2%), mientras que entre quienes lo ven muy difícil, la preferencia está más repartida, con una presencia destacada de “Casi nunca” (22.2%). Esta tendencia sugiere que una percepción más positiva sobre la ley se asocia con una mayor disposición al diálogo y al acuerdo.
 
 ## 4. Visualización Gráfica del ACS
 
@@ -224,6 +246,9 @@ fviz_ca_biplot(acs_quito,
   scale_y_continuous(expand = expansion(mult = 0.2))
 
 ```
+
+El biplot del ACS muestra una asociación clara entre los niveles de facilidad para cumplir la ley y la preferencia por hacer acuerdos. En el cuadrante izquierdo superior, se agrupan “Casi siempre” y “Fácil”, sugiriendo afinidad entre estas categorías. En el cuadrante izquierdo inferior, “Muy fácil” se asocia estrechamente con “Siempre acuerdo”, reforzando la idea de que mayor facilidad percibida conlleva mayor disposición a negociar. En contraste, en el cuadrante derecho, tanto “Nunca” como “Casi nunca” se ubican junto a “Muy difícil” y “Difícil”, lo que indica que una percepción negativa sobre el cumplimiento de la ley se relaciona con menor disposición a llegar a acuerdos. Las posiciones de las flechas reflejan además el peso relativo de cada categoría en las dimensiones analizadas.
+
 
 ## Punto 2
 Construir la tabla de contigencias p17b x ciudad que le correspondio al frupo y las ciudades de Asuncion y Montevideo. Yuxtaponerla a la tabla p17b x p21 del ejerciio 1 y utlizarla como variables suplementarias para averiguar si se puede identificar algun patron o tendecia en la facilidad para cumplir la ley en las ciudades suplementarias con respecto a las tendencias de la ciudad que le correspondio al grupo
