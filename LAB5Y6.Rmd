@@ -52,10 +52,120 @@ ecc<- read_csv2("ECC_completa_19426.csv")
 Con la metodologia del ejemplo 5.4 hacer un ACS para la tabla de contigencias p17b x p21 con las preguntas "p17_b" (en las filas) sobre la facilidad para cumplir la ley y la preferencia por hacer acuerdos p21. Identificar patrones o tendencias si los hat comentar los resultados.
 
 
+## 1. Carga y Preparación de Datos
+
+```{r carga-datos}
+datos_completos <- read.csv2("ECC_completa_19426.csv", header = TRUE, sep = ";")
+datos_quito <- subset(datos_completos, ciudad2 == "Quito")
+```
+
+## 2. Tablas de Frecuencias y Perfiles
+
+### Tabla de Contingencia
+
+```{r tabla-contingencia-viz}
+tabla_quito <- table(datos_quito$p17_b, datos_quito$p21)
+
+colnames(tabla_quito) <- c("Nunca Acuerdo", "Casi Nunca", "Casi Siempre", "Siempre Acuerdo")
+rownames(tabla_quito) <- c("Muy difícil", "Difícil", "Fácil", "Muy fácil")
+tabla_con_totales <- addmargins(tabla_quito)
+
+kable(tabla_con_totales, caption = "Tabla de Contingencia: Facilidad Ley vs. Preferencia Acuerdos", booktabs = TRUE) %>%
+  kable_styling(latex_options = c("striped", "hold_position"), bootstrap_options = c("striped", "hover")) %>%
+  add_header_above(c(" " = 1, "Preferencia por hacer Acuerdos" = 4, " " = 1)) %>%
+  row_spec(nrow(tabla_con_totales), bold = TRUE) %>%
+  column_spec(ncol(tabla_con_totales), bold = TRUE)
+```
+
+### Tabla de Perfiles Fila
+
+```{r tabla-perfiles-fila, warning=FALSE}
+perfiles_fila <- prop.table(tabla_quito, margin = 1) * 100
+perfiles_fila_totales <- addmargins(perfiles_fila, margin = 2)
+
+kable(perfiles_fila_totales,
+      caption = "Perfiles Fila (\\%): Distribución de Preferencia por cada nivel de Dificultad",  # ESCAPADO
+      digits = 2, booktabs = TRUE) %>%
+  kable_styling(latex_options = c("striped", "hold_position"), 
+                bootstrap_options = c("striped", "hover")) %>%
+  add_header_above(c(" " = 1, "Preferencia por hacer Acuerdos" = 4, " " = 1)) %>%
+  column_spec(ncol(perfiles_fila_totales), bold = TRUE)
+```
+
+### Tabla de Perfiles Columna
+
+```{r tabla-perfiles-columna, warning=FALSE}
+perfiles_columna <- prop.table(tabla_quito, margin = 2) * 100
+perfiles_columna_totales <- addmargins(perfiles_columna, margin = 1)
+
+kable(perfiles_columna_totales,
+      caption = "Perfiles Columna (\\%): Distribución de Dificultad por cada tipo de Preferencia",  # ESCAPADO
+      digits = 2, booktabs = TRUE) %>%
+  kable_styling(latex_options = c("striped", "hold_position"), 
+                bootstrap_options = c("striped", "hover")) %>%
+  add_header_above(c(" " = 1, "Preferencia por hacer Acuerdos" = 4)) %>%
+  row_spec(nrow(perfiles_columna_totales), bold = TRUE)
+```
+
+## 3. Análisis de Correspondencias Simples (ACS)
+
+### Resumen de Autovalores
+
+```{r acs-autovalores}
+acs_quito <- CA(tabla_quito, graph = FALSE)
+eig_tabla <- as.data.frame(acs_quito$eig)
+colnames(eig_tabla) <- c("Valor Propio", "% de Varianza", "% Varianza Acumulada")
+
+kable(eig_tabla, digits = 3, caption = "Resumen de Autovalores del ACS", booktabs = TRUE) %>%
+  kable_styling(latex_options = "hold_position", bootstrap_options = c("striped", "hover"))
+```
+
+### Indicadores de Calidad del Análisis
+
+```{r acs-indicadores}
+resultados_filas <- cbind(
+  acs_quito$row$coord,
+  acs_quito$row$contrib,
+  acs_quito$row$cos2
+)
+colnames(resultados_filas) <- c("Coord.1", "Coord.2", "Coord.3", "Ctr.1", "Ctr.2", "Ctr.3", "Cos2.1", "Cos2.2", "Cos2.3")
+
+kable(resultados_filas[, c("Coord.1", "Coord.2", "Ctr.1", "Ctr.2", "Cos2.1", "Cos2.2")],
+      digits = 3, booktabs = TRUE,
+      caption = "Indicadores para el Análisis por Filas (Facilidad Ley)") %>%
+  add_header_above(c(" " = 1, "Coordenadas" = 2, "Contribuciones" = 2, "Cosenos²" = 2)) %>%
+  kable_styling(latex_options = "hold_position", bootstrap_options = c("striped", "hover"))
+
+resultados_columnas <- cbind(
+  acs_quito$col$coord,
+  acs_quito$col$contrib,
+  acs_quito$col$cos2
+)
+colnames(resultados_columnas) <- c("Coord.1", "Coord.2", "Coord.3", "Ctr.1", "Ctr.2", "Ctr.3", "Cos2.1", "Cos2.2", "Cos2.3")
+
+kable(resultados_columnas[, c("Coord.1", "Coord.2", "Ctr.1", "Ctr.2", "Cos2.1", "Cos2.2")],
+      digits = 3, booktabs = TRUE,
+      caption = "Indicadores para el Análisis por Columnas (Preferencia Acuerdos)") %>%
+  add_header_above(c(" " = 1, "Coordenadas" = 2, "Contribuciones" = 2, "Cosenos²" = 2)) %>%
+  kable_styling(latex_options = "hold_position", bootstrap_options = c("striped", "hover"))
+```
+
+## 4. Visualización Gráfica del ACS
+
+```{r biplot, fig.width=8, fig.height=7, fig.align='center'}
+fviz_ca_biplot(acs_quito,
+               repel = TRUE,
+               label = "all",
+               col.row = "#1B9E77",
+               col.col = "#D95F02",
+               ggtheme = theme_minimal(),
+               title = "Biplot ACS: Facilidad Ley vs. Preferencia Acuerdos (Quito)")
+```
+
 ## Punto 2
 Construir la tabla de contigencias p17b x ciudad que le correspondio al frupo y las ciudades de Asuncion y Montevideo. Yuxtaponerla a la tabla p17b x p21 del ejerciio 1 y utlizarla como variables suplementarias para averiguar si se puede identificar algun patron o tendecia en la facilidad para cumplir la ley en las ciudades suplementarias con respecto a las tendencias de la ciudad que le correspondio al grupo
 
-```{r}
+```{r 1}
 # 2. Carga y preparación de datos
 datos <- read.csv("ECC_completa_19426.csv", sep = ";")
 ciudades_interes <- c('Belo Horizonte', 'Caracas', 'La Paz', 'Bogota', 'Medellin', 'Monterrey')
@@ -65,7 +175,7 @@ Encuestas_filtradas <- datos %>%
   select(ciudad2, p17_b, p21)
 ```
 
-```{r}
+```{r 2}
 # 3. Creación de tablas de contingencia
 TablaPreguntas <- table(Encuestas_filtradas$p17_b, Encuestas_filtradas$p21)
 TablaCiudades <- table(Encuestas_filtradas$ciudad2, Encuestas_filtradas$p21)
@@ -83,13 +193,13 @@ kable(TablaContingencia, caption = "Tabla de contingencia") %>%
 ```
 
 
-```{r}
+```{r 3}
 # 4. Análisis de Correspondencias Simples
 ACSCiudades <- CA(TablaContingencia, graph = FALSE, row.sup = 5:10)
 ```
 
 
-```{r}
+```{r 4}
 # 5. Resultados del ACS
 cat("\n### Varianza explicada\n")
 kable(round(ACSCiudades$eig, 4), caption = "Varianza explicada por cada dimensión") %>%
@@ -111,7 +221,7 @@ kable(round(ACSCiudades$col$contrib, 4)) %>% kable_styling() %>% print()
 ```
 
 
-```{r}
+```{r 5}
 # 6. Visualización
 cat("\n### Gráfico de correspondencias\n")
 fviz_ca_biplot(ACSCiudades, 
@@ -131,7 +241,7 @@ fviz_ca_biplot(ACSCiudades,
 Apilar como ilustrativa la tabla ciudades (filas) vs preferencias para hacer acuerdors p21 para investigar si hay algun patron o tendencia en las ciuades respecto a las tendencias de la ciudad que le correspondio al grupo
 
 
-```{r, warning=FALSE}
+```{r 6, warning=FALSE}
 #GRAFICO
 tab_ciud_p21 <- with(ecc, table(ciudad2, p21))
 ciudad_grupo   <- "Quito"
@@ -157,7 +267,7 @@ Si observamos los grupos de ciudades, se distinguen tres patrones:
 
 En definitiva, existe un claro agrupamiento según la propensión a pactar acuerdos: Quito forma parte del grupo “siempre”, mientras que La Paz, Caracas y Monterrey constituyen el polo opuesto, y México DF y Montevideo ocupan un punto intermedio.
 
-```{r, warning=FALSE}
+```{r 7, warning=FALSE}
 #TABLA
 nuevos_nombres_p21 <- c("SIEMPRE", "CASI SIEMPRE", "NUNCA", "CASI NUNCA")
 colnames(tab_ciud_p21) <- nuevos_nombres_p21
@@ -195,7 +305,7 @@ En definitiva, el análisis confirma un claro agrupamiento: un polo “siempre�
 
 Seleccionar un pregunta del "Formulario Generico ECC" que el rupo considere de interes para realizar un ACS de la tabla de contigencia de esa pregunta con las ciudades e identificar tendencias o patrones por ciudades con respecto a esa pregunta
 
-```{r , warning=FALSE}
+```{r 8, warning=FALSE}
 # TABLA DE CONTINGENCIA ---------------------------------------------------
 
 tab <- ecc %>% 
@@ -206,7 +316,7 @@ tab <- ecc %>%
 ```
 
 
-```{r, warning=FALSE}
+```{r 9, warning=FALSE}
 # Distancia χ²  y clustering ----------------------------------------------
 
 
@@ -230,7 +340,7 @@ labs_hex <- c(
 ```
 
 
-```{r, warning=FALSE}
+```{r 10, warning=FALSE}
 # TABLA DE RESUMEN --------------------------------------------------------
 
 
@@ -242,10 +352,75 @@ df_resumen <- data.frame(
 )
 print(df_resumen)
 ```
+```{r 11.1}
+library(factoextra)
+library(ggplot2)
+library(stringi)
+
+# Limpiar etiquetas de ciudades (evita errores de LaTeX)
+hc$labels <- hc$labels %>%
+  iconv(from = "", to = "UTF-8", sub = "") %>%
+  stri_trans_general("Latin-ASCII")
+
+# Limpiar etiquetas de leyenda si las tienes
+names(labs_hex) <- names(labs_hex) %>%
+  iconv(from = "", to = "UTF-8", sub = "") %>%
+  stri_trans_general("Latin-ASCII")
+
+labs_hex <- labs_hex %>%
+  iconv(from = "", to = "UTF-8", sub = "") %>%
+  stri_trans_general("Latin-ASCII")
+
+# Crear dendrograma
+p <- fviz_dend(
+  hc,
+  k         = k,
+  k_colors  = pal_hex,
+  rect      = TRUE,
+  rect_fill = TRUE,
+  cex       = 0.85,
+  main      = "Agrupaciones de ciudades latinoamericanas según patrón de transporte (p9)",
+  xlab      = "Ciudades latinoamericanas",
+  ylab      = "Altura"
+) +
+  scale_color_identity(
+    name   = "Patrón dominante",
+    breaks = names(labs_hex),
+    labels = labs_hex
+  ) +
+  guides(colour = guide_legend(override.aes = list(size = 2))) +
+  theme(
+    legend.position = "top",
+    legend.title    = element_text(face = "bold")
+  )
+
+# Crear carpeta si no existe
+if (!dir.exists("figuras")) dir.create("figuras")
+
+# Guardar el gráfico como imagen PNG
+ggsave("figuras/dendrograma_p9.png", plot = p, width = 8, height = 5, dpi = 300)
+
+```
 
 
 
-```{r, warning=FALSE}
+```{r 11, warning=FALSE}
+
+library(stringi)
+
+# Limpiar nombres de las ciudades en el dendrograma
+hc$labels <- hc$labels %>%
+  iconv(from = "", to = "UTF-8", sub = "") %>%
+  stri_trans_general("Latin-ASCII")
+
+# Limpiar etiquetas de la leyenda (si las usas)
+names(labs_hex) <- names(labs_hex) %>%
+  iconv(from = "", to = "UTF-8", sub = "") %>%
+  stri_trans_general("Latin-ASCII")
+
+labs_hex <- labs_hex %>%
+  iconv(from = "", to = "UTF-8", sub = "") %>%
+  stri_trans_general("Latin-ASCII")
 # DENDOGRAMA --------------------------------------------------------------
 
 
@@ -293,7 +468,7 @@ Ciudad × Transporte, y se proyecta p17_b como variable ilustrativa para
 identificar posibles asociaciones.
 
 
-```{r, warning=FALSE}
+```{r 12, warning=FALSE}
 # TABLA DE CONTINGENCIA Ciudad × Transporte (p9) ----------------------
 
 tab_p9 <- ecc %>%
@@ -317,7 +492,7 @@ la movilidad urbana en cada contexto.
 
 
 
-```{r, warning=FALSE}
+```{r 13, warning=FALSE}
 # ANÁLISIS DE CORRESPONDENCIAS (ACS) ----------------------------------
 
 res.ca <- CA(tab_p9, graph = FALSE)
@@ -356,12 +531,36 @@ coord_ciudades$ciudad <- rownames(coord_ciudades)
 coords_df <- left_join(coord_ciudades, ley_ciudad, by = "ciudad")
 
 
+library(stringi)
+
+# Limpiar etiquetas conflictivas
+coords_df$ciudad <- coords_df$ciudad %>%
+  iconv(from = "", to = "UTF-8", sub = "") %>%
+  stri_trans_general("Latin-ASCII")
+
+coords_df$ley <- coords_df$ley %>%
+  iconv(from = "", to = "UTF-8", sub = "") %>%
+  stri_trans_general("Latin-ASCII")
+
 # CALCULAR CENTROIDES DE CADA NIVEL DE p17_b --------------------------
 
 centroides <- coords_df %>%
   group_by(ley) %>%
   summarise(across(starts_with("Dim"), \(x) mean(x, na.rm = TRUE)))
 
+
+# Limpiar etiquetas para evitar errores LaTeX
+coords_df$ciudad <- coords_df$ciudad %>%
+  iconv(from = "", to = "UTF-8", sub = "") %>%
+  stri_trans_general("Latin-ASCII")
+
+coords_df$ley <- coords_df$ley %>%
+  iconv(from = "", to = "UTF-8", sub = "") %>%
+  stri_trans_general("Latin-ASCII")
+
+centroides$ley <- centroides$ley %>%
+  iconv(from = "", to = "UTF-8", sub = "") %>%
+  stri_trans_general("Latin-ASCII")
 
 # GRAFICAR RESULTADOS --------------------------------------------------
 
