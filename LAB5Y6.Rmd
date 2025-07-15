@@ -25,7 +25,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Introduccion
 
-Carga de achivos y organizaicon de los datos
+Carga de achivos y organizaicon de los datos ylibrerias
 
 ```{r cars, results='hide',message = FALSE, warning=FALSE}
 
@@ -70,8 +70,10 @@ colnames(tabla_quito) <- c("Nunca Acuerdo", "Casi Nunca", "Casi Siempre", "Siemp
 rownames(tabla_quito) <- c("Muy difícil", "Difícil", "Fácil", "Muy fácil")
 tabla_con_totales <- addmargins(tabla_quito)
 
-kable(tabla_con_totales, caption = "Tabla de Contingencia: Facilidad Ley vs. Preferencia Acuerdos", booktabs = TRUE) %>%
-  kable_styling(latex_options = c("striped", "hold_position"), bootstrap_options = c("striped", "hover")) %>%
+kable(tabla_con_totales, caption = "Tabla de Contingencia: Facilidad Ley vs. 
+      Preferencia Acuerdos", booktabs = TRUE) %>%
+  kable_styling(latex_options = c("striped", "hold_position"),
+                bootstrap_options = c("striped", "hover")) %>%
   add_header_above(c(" " = 1, "Preferencia por hacer Acuerdos" = 4, " " = 1)) %>%
   row_spec(nrow(tabla_con_totales), bold = TRUE) %>%
   column_spec(ncol(tabla_con_totales), bold = TRUE)
@@ -84,7 +86,8 @@ perfiles_fila <- prop.table(tabla_quito, margin = 1) * 100
 perfiles_fila_totales <- addmargins(perfiles_fila, margin = 2)
 
 kable(perfiles_fila_totales,
-      caption = "Perfiles Fila (\\%): Distribución de Preferencia por cada nivel de Dificultad",  # ESCAPADO
+      caption = "Perfiles Fila (\\%): Distribución de Preferencia por
+      cada nivel de Dificultad",  # ESCAPADO
       digits = 2, booktabs = TRUE) %>%
   kable_styling(latex_options = c("striped", "hold_position"), 
                 bootstrap_options = c("striped", "hover")) %>%
@@ -99,7 +102,8 @@ perfiles_columna <- prop.table(tabla_quito, margin = 2) * 100
 perfiles_columna_totales <- addmargins(perfiles_columna, margin = 1)
 
 kable(perfiles_columna_totales,
-      caption = "Perfiles Columna (\\%): Distribución de Dificultad por cada tipo de Preferencia",  # ESCAPADO
+      caption = "Perfiles Columna (\\%): Distribución de Dificultad 
+      por cada tipo de Preferencia",  # ESCAPADO
       digits = 2, booktabs = TRUE) %>%
   kable_styling(latex_options = c("striped", "hold_position"), 
                 bootstrap_options = c("striped", "hover")) %>%
@@ -122,13 +126,14 @@ kable(eig_tabla, digits = 3, caption = "Resumen de Autovalores del ACS", booktab
 
 ### Indicadores de Calidad del Análisis
 
-```{r acs-indicadores}
+```{r acs-indicadores analisi por filas y columnas}
 resultados_filas <- cbind(
   acs_quito$row$coord,
   acs_quito$row$contrib,
   acs_quito$row$cos2
 )
-colnames(resultados_filas) <- c("Coord.1", "Coord.2", "Coord.3", "Ctr.1", "Ctr.2", "Ctr.3", "Cos2.1", "Cos2.2", "Cos2.3")
+colnames(resultados_filas) <- c("Coord.1", "Coord.2", "Coord.3", "Ctr.1", "Ctr.2", "Ctr.3",
+                                "Cos2.1", "Cos2.2", "Cos2.3")
 
 kable(resultados_filas[, c("Coord.1", "Coord.2", "Ctr.1", "Ctr.2", "Cos2.1", "Cos2.2")],
       digits = 3, booktabs = TRUE,
@@ -141,7 +146,8 @@ resultados_columnas <- cbind(
   acs_quito$col$contrib,
   acs_quito$col$cos2
 )
-colnames(resultados_columnas) <- c("Coord.1", "Coord.2", "Coord.3", "Ctr.1", "Ctr.2", "Ctr.3", "Cos2.1", "Cos2.2", "Cos2.3")
+colnames(resultados_columnas) <- c("Coord.1", "Coord.2", "Coord.3", "Ctr.1", "Ctr.2",
+                                   "Ctr.3", "Cos2.1", "Cos2.2", "Cos2.3")
 
 kable(resultados_columnas[, c("Coord.1", "Coord.2", "Ctr.1", "Ctr.2", "Cos2.1", "Cos2.2")],
       digits = 3, booktabs = TRUE,
@@ -150,16 +156,73 @@ kable(resultados_columnas[, c("Coord.1", "Coord.2", "Ctr.1", "Ctr.2", "Cos2.1", 
   kable_styling(latex_options = "hold_position", bootstrap_options = c("striped", "hover"))
 ```
 
+
+```{r barras}
+# Configurar layout para 4 gráficos (2x2) con espacio para título
+par(mfrow = c(2, 2),  # 2 filas, 2 columnas
+    oma = c(0, 0, 2, 0),  # Espacio superior para título general
+    mar = c(7, 4, 3, 1))  # Márgenes individuales (abajo, izq, arriba, der)
+
+# Paleta de colores (misma para todos los gráficos)
+mi_paleta <- c("#4E79A7", "#F28E2B", "#E15759", "#76B7B2")
+
+# Iterar sobre cada nivel de dificultad
+for (j in 1:nrow(perfiles_fila)) {
+  # Crear gráfico de barras
+  bp <- barplot(
+    perfiles_fila[j, ],
+    main = rownames(perfiles_fila)[j],
+    col = mi_paleta,
+    ylim = c(0, 50),
+    las = 2,  # Etiquetas eje X verticales
+    cex.names = 0.9,  # Tamaño nombres ejes
+    border = NA,  # Sin bordes
+    ylab = "Porcentaje (%)"
+  )
+  
+  # Añadir valores
+  text(
+    x = bp,
+    y = perfiles_fila[j, ] + 1.5,
+    labels = paste0(round(perfiles_fila[j, ], 1), "%"),
+    cex = 0.9,
+    font = 2  # Texto en negrita
+  )
+}
+
+# Título general
+title("Distribución de Preferencia por Acuerdos según Facilidad para Entender Leyes", 
+      outer = TRUE, 
+      cex.main = 1.3,
+      font.main = 2)
+
+```
+
+
+
+
 ## 4. Visualización Gráfica del ACS
 
 ```{r biplot, fig.width=8, fig.height=7, fig.align='center'}
+# PRIMERO: Calcular var_exp antes de usarlo en labs()
+var_exp <- round(acs_quito$eig[, 2][1:2], 1)  # Extraer % varianza explicada
+
+# SEGUNDO: Crear el gráfico con var_exp ya definido
 fviz_ca_biplot(acs_quito,
                repel = TRUE,
                label = "all",
-               col.row = "#1B9E77",
-               col.col = "#D95F02",
-               ggtheme = theme_minimal(),
-               title = "Biplot ACS: Facilidad Ley vs. Preferencia Acuerdos (Quito)")
+               col.row = "#1F78B4",
+               col.col = "#E31A1C",
+               addlabels = TRUE,
+               arrows = c(TRUE, TRUE),  # Flechas para ambos (filas y columnas)
+               title = "Facilidad para entender leyes vs. Preferencia por acuerdos",
+               ggtheme = theme_classic()) +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold")) +
+  labs(x = paste0("Dimensión 1 (", var_exp[1], "%)"),
+       y = paste0("Dimensión 2 (", var_exp[2], "%)")) +
+  scale_x_continuous(expand = expansion(mult = 0.2)) +
+  scale_y_continuous(expand = expansion(mult = 0.2))
+
 ```
 
 ## Punto 2
@@ -168,7 +231,8 @@ Construir la tabla de contigencias p17b x ciudad que le correspondio al frupo y 
 ```{r 1}
 # 2. Carga y preparación de datos
 datos <- read.csv("ECC_completa_19426.csv", sep = ";")
-ciudades_interes <- c('Belo Horizonte', 'Caracas', 'La Paz', 'Bogota', 'Medellin', 'Monterrey')
+ciudades_interes <- c('Belo Horizonte', 'Caracas', 'La Paz', 'Bogota', 'Medellin', 
+                      'Monterrey')
 
 Encuestas_filtradas <- datos %>%
   filter(ciudad2 %in% ciudades_interes) %>%
@@ -181,9 +245,12 @@ TablaPreguntas <- table(Encuestas_filtradas$p17_b, Encuestas_filtradas$p21)
 TablaCiudades <- table(Encuestas_filtradas$ciudad2, Encuestas_filtradas$p21)
 TablaContingencia <- rbind(TablaPreguntas, TablaCiudades)
 
-rownames(TablaContingencia) <- c("17b-Nunca", "17b-Casi Nunca", "17b-Casi siempre", "17b-Siempre",
-                                 "Belo Horizonte", "Bogota", "Caracas", "La Paz", "Medellin", "Monterrey")
-colnames(TablaContingencia) <- c("21-Nunca", "21-Casi Nunca", "21-Casi siempre", "21-Siempre")
+rownames(TablaContingencia) <- c("17b-Nunca", "17b-Casi Nunca", "17b-Casi siempre",
+                                 "17b-Siempre",
+                                 "Belo Horizonte", "Bogota", "Caracas", "La Paz",
+                                 "Medellin", "Monterrey")
+colnames(TablaContingencia) <- c("21-Nunca", "21-Casi Nunca", "21-Casi siempre",
+                                 "21-Siempre")
 
 # Mostrar tabla formateada
 kable(TablaContingencia, caption = "Tabla de contingencia") %>%
@@ -192,32 +259,55 @@ kable(TablaContingencia, caption = "Tabla de contingencia") %>%
 
 ```
 
-
+### Ejecucion del analisis de correspondencias Simples
 ```{r 3}
 # 4. Análisis de Correspondencias Simples
 ACSCiudades <- CA(TablaContingencia, graph = FALSE, row.sup = 5:10)
 ```
 
-
-```{r 4}
+### Resultadosd de ACS
+```{r 4 , warning=FALSE , message=FALSE}
 # 5. Resultados del ACS
-cat("\n### Varianza explicada\n")
-kable(round(ACSCiudades$eig, 4), caption = "Varianza explicada por cada dimensión") %>%
-  kable_styling() %>% print()
+# Varianza explicada
+cat("\n### Varianza explicada\n\n")
+kable(round(ACSCiudades$eig, 4), 
+      caption = "Varianza explicada por cada dimensión",
+      booktabs = TRUE,
+      format = "latex") %>% 
+  kable_styling(latex_options = c("hold_position", "striped")) %>% 
+  asis_output()  # Necesario para renderizado correcto
 
-cat("\n### Coordenadas de las categorías\n")
-cat("\n#### Preguntas\n")
-kable(round(ACSCiudades$row$coord, 4)) %>% kable_styling() %>% print()
+# Coordenadas
+cat("\n### Coordenadas de las categorías\n\n")
+cat("\n#### Preguntas\n\n")
+kable(round(ACSCiudades$row$coord, 4),
+      booktabs = TRUE,
+      format = "latex") %>% 
+  kable_styling(latex_options = c("hold_position", "striped")) %>% 
+  asis_output()
 
-cat("\n#### Respuestas\n")
-kable(round(ACSCiudades$col$coord, 4)) %>% kable_styling() %>% print()
+cat("\n#### Respuestas\n\n")
+kable(round(ACSCiudades$col$coord, 4),
+      booktabs = TRUE,
+      format = "latex") %>% 
+  kable_styling(latex_options = c("hold_position", "striped")) %>% 
+  asis_output()
 
-cat("\n### Contribuciones a los ejes\n")
-cat("\n#### Preguntas\n")
-kable(round(ACSCiudades$row$contrib, 4)) %>% kable_styling() %>% print()
+# Contribuciones
+cat("\n### Contribuciones a los ejes\n\n")
+cat("\n#### Preguntas\n\n")
+kable(round(ACSCiudades$row$contrib, 4),
+      booktabs = TRUE,
+      format = "latex") %>% 
+  kable_styling(latex_options = c("hold_position", "striped")) %>% 
+  asis_output()
 
-cat("\n#### Respuestas\n")
-kable(round(ACSCiudades$col$contrib, 4)) %>% kable_styling() %>% print()
+cat("\n#### Respuestas\n\n")
+kable(round(ACSCiudades$col$contrib, 4),
+      booktabs = TRUE,
+      format = "latex") %>% 
+  kable_styling(latex_options = c("hold_position", "striped")) %>% 
+  asis_output()
 ```
 
 
@@ -313,6 +403,24 @@ tab <- ecc %>%
   filter(!is.na(ciudad) & !is.na(transp)) %>% 
   table()
 
+
+# Convertir tabla a data.frame
+tab_df <- as.data.frame.matrix(tab)
+
+# Limpiar nombres: convertir a UTF-8 válido
+colnames(tab_df) <- iconv(colnames(tab_df), from = "", to = "UTF-8", sub = "ASCII")
+rownames(tab_df) <- iconv(rownames(tab_df), from = "", to = "UTF-8", sub = "ASCII")
+
+# Escapar símbolos LaTeX como _
+colnames(tab_df) <- gsub("_", "\\\\_", colnames(tab_df))
+rownames(tab_df) <- gsub("_", "\\\\_", rownames(tab_df))
+
+kable(tab_df,
+      format = "latex",
+      caption = "Tabla de Contingencia: Ciudad vs. Medio de Transporte (p9)",
+      booktabs = TRUE,
+      escape = FALSE) %>%
+  kable_styling(latex_options = c("striped", "hold_position"))
 ```
 
 
@@ -352,7 +460,7 @@ df_resumen <- data.frame(
 )
 print(df_resumen)
 ```
-```{r 11.1}
+```{r 111}
 library(factoextra)
 library(ggplot2)
 library(stringi)
